@@ -8,10 +8,6 @@ public class Numero implements Serializable {
 	String boleto;
 	String premio;
 
-	public Numero(String boleto, String premio) {
-		this.boleto = boleto;
-		this.premio = premio;
-	}
 	public Numero(String boleto) {
 		this.boleto = boleto;
 		this.premio = premio;

@@ -2,14 +2,13 @@
 import java.io.*;
 
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
 
 public class ServidorSocketStream {
 	public static void main(String[] args) throws ClassNotFoundException {
-		boolean end = false; // Se volvera true cuando el boleto sea 00000
-		String prizeNum = "12345"; // generar aleatoriamente en el futuro
+		boolean end = false;
+		String prizeNum = Integer.toString((int) (Math.random() * (99999 - 1) + 1));
+		prizeNum = ("00000" + prizeNum).substring(prizeNum.length());
+		String boleto;
 
 		try {
 			ServerSocket serverSocket = new ServerSocket();
@@ -23,36 +22,44 @@ public class ServidorSocketStream {
 			ObjectInputStream ois = new ObjectInputStream(newSocket.getInputStream());
 
 			// Empieza la loteria
-			System.out.println("Numero Ganador es : " + prizeNum);
+			System.out.println("---- Numero Ganador es : " + prizeNum + " ----");
+			oos.writeUTF(prizeNum);
+			oos.flush();
 
 			while (!end) {
 				Numero numObj = (Numero) ois.readObject();
-				System.out.println(numObj.toString());
-				String boleto = numObj.getBoleto();
+				boleto = numObj.getBoleto();
 				if (boleto.equals("00000")) {
 					end = true;
 					System.out.println("Loteria Acabada");
 				} else {
+					// Casos de premio
 					if (boleto.equals(prizeNum)) {
 						numObj.setPremio("Premio Gordo");
+					} else if ((Integer.parseInt(boleto) == (Integer.parseInt(prizeNum) - 1))) {
+						numObj.setPremio("Numero Anterior");
+					} else if ((Integer.parseInt(boleto) == (Integer.parseInt(prizeNum) + 1))) {
+						numObj.setPremio("Numero Posterior");
+					} else if (boleto.substring(2).equals(prizeNum.substring(2))) {
+						numObj.setPremio("Centenas");
+					} else if (boleto.substring(3).equals(prizeNum.substring(3))) {
+						numObj.setPremio("Dos Ultimas Cifras");
+					} else if (boleto.charAt(boleto.length() - 1) == prizeNum.charAt(prizeNum.length() - 1)) {
+						numObj.setPremio("Reintegro");
 					} else {
 						numObj.setPremio("Nada");
 					}
+					System.out.println(numObj.toString());
 					oos.writeObject(numObj);
 					oos.flush();
 				}
-
 			}
-
 			oos.close();
 			ois.close();
 			serverSocket.close();
-		} catch (
-
-		IOException e) {
+			newSocket.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
-
 }

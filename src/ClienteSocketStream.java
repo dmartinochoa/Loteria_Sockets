@@ -6,8 +6,9 @@ import java.util.Scanner;
 
 public class ClienteSocketStream {
 	public static void main(String[] args) throws ClassNotFoundException {
-		boolean end = false; // Se volvera true cuando el boleto sea 00000
+		boolean end = false;
 		String boleto;
+		String prizeNum;
 		try {
 			Socket clientSocket = new Socket();
 			System.out.println("Estableciendo La Conexión");
@@ -16,27 +17,25 @@ public class ClienteSocketStream {
 			ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
 			ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
-			// Empieza la loteria
-			System.out.println("---- Introduce tu boleto ---- ");
+			prizeNum = ois.readUTF();
+			System.out.println("---- Numero Ganador es : " + prizeNum + " ----");
 			Scanner myObj = new Scanner(System.in);
 
+			// Empieza la loteria
 			while (!end) {
-				boleto = myObj.nextLine();
-				boleto = lengthCheck(myObj, boleto);
-				boleto = ("00000" + boleto).substring(boleto.length()); // 0's a la izquierda
+				boleto = askForNum(myObj);
 				Numero numObj = new Numero(boleto);
 				oos.writeObject(numObj);
 				oos.flush();
+
 				if (boleto.equals("00000")) {
 					end = true;
 					System.out.println("Loteria Acabada");
 				} else {
 					numObj = (Numero) ois.readObject();
-					System.out.println(numObj.toString());
+					System.out.println(numObj.toString() + "; El Numero Ganador era " + prizeNum);
 				}
-
 			}
-
 			oos.close();
 			ois.close();
 			clientSocket.close();
@@ -46,15 +45,16 @@ public class ClienteSocketStream {
 		}
 	}
 
-	private static String lengthCheck(Scanner myObj, String boleto) {
-		if (boleto.length() > 5) {
-			System.out.println("Numero Invalido, debe tener 5 cifras o menos");
-			while (boleto.length() > 5) {
-				System.out.println("---- Introduce tu boleto ---- ");
-				boleto = myObj.nextLine();
-			}
+	private static String askForNum(Scanner myObj) {
+		System.out.println("---- Introduce tu boleto ---- ");
+		String boleto = myObj.nextLine();
+		while (boleto.length() > 5 || boleto.length() == 0 || boleto.matches("[0-9]+") == false) {
+			System.out.println("Numero Invalido, solo puedo tener numeros entre 1 y 5 cifras");
+			System.out.println("---- Introduce tu boleto ---- ");
+			boleto = myObj.nextLine();
 		}
+		// 0's a la izquierda del numero cuando no llegue a 5 cifras
+		boleto = ("00000" + boleto).substring(boleto.length());
 		return boleto;
 	}
-
 }
